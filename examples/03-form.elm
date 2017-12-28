@@ -1,8 +1,10 @@
 import Html exposing (..)
 import Html.Attributes exposing (..)
 import Html.Events exposing (onInput)
+import List
+import Regex
 
-
+main : Program Never Model Msg
 main =
   Html.beginnerProgram
     { model = model
@@ -64,15 +66,23 @@ view model =
     ]
 
 
+
+
 viewValidation : Model -> Html msg
 viewValidation model =
   let
     (color, message) =
-      if String.length model.password < 8 then
-        ("red", "Password must be at least 8 characters")
-      else if model.password == model.passwordAgain then
-        ("green", "OK")
-      else
+      if List.length (validateWithRegex model.password) == 0 then
+        ("red", "Password must be at least 8 characters and contain at least one uppercase letter, one lowercase letter, and one number")
+      else if model.password /= model.passwordAgain then
         ("red", "Passwords do not match!")
+      else
+        ("green", "OK")
   in
     div [ style [("color", color)] ] [ text message ]
+
+
+validateWithRegex : String -> List Regex.Match
+validateWithRegex =
+  Regex.find Regex.All (Regex.regex "^(?=.*[A-Z])(?=.*[a-z])(?=.*[\\d])(?=.{8,})")
+
