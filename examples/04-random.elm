@@ -19,13 +19,18 @@ main =
 
 
 type alias Model =
-  { dieImg : String
+  { dieImgs : (String, String)
   }
 
 
 init : (Model, Cmd Msg)
 init =
-  (Model "https://www.wpclipart.com/recreation/games/dice/die_face_1.png", Cmd.none)
+  ( Model
+     ( "https://www.wpclipart.com/recreation/games/dice/die_face_1.png"
+     , "https://www.wpclipart.com/recreation/games/dice/die_face_1.png"
+     )
+  , Cmd.none
+  )
 
 
 
@@ -34,20 +39,29 @@ init =
 
 type Msg
   = Roll
-  | NewFace Int
+  | NewFace (Int, Int)
 
 
 update : Msg -> Model -> (Model, Cmd Msg)
 update msg model =
   case msg of
     Roll ->
-      (model, Random.generate NewFace (Random.int 1 6))
+      (model, Random.generate NewFace diePair)
 
-    NewFace newFace ->
+    NewFace ( die1, die2 ) ->
       let
-        url = dieFaceUrl newFace
+        urls = (dieFaceUrl die1, dieFaceUrl die2)
       in
-        (Model url, Cmd.none)
+        (Model urls, Cmd.none)
+
+
+diePair : Random.Generator (Int, Int)
+diePair =
+  Random.pair randomFace randomFace
+
+randomFace : Random.Generator Int
+randomFace =
+  Random.int 1 6
 
 
 dieFaceUrl : Int -> String
@@ -69,9 +83,13 @@ subscriptions model =
 
 view : Model -> Html Msg
 view model =
-  div []
-    [ img [src model.dieImg, alt "die face", title <| "Die showing " ++ toString 1 ] []
-    , div []
-      [ button [ style [("padding", "20px"),("font-size", "24px"), ("margin", "16px")], onClick Roll ] [ text "Roll" ]
+  let
+    (die1, die2) = model.dieImgs
+  in
+    div []
+      [ img [src die1, alt "die face", title <| "Die showing " ++ toString 1 ] []
+      , img [src die2, alt "die face", title <| "Die showing " ++ toString 1 ] []
+      , div []
+        [ button [ style [("padding", "20px"),("font-size", "24px"), ("margin", "16px")], onClick Roll ] [ text "Roll" ]
+        ]
       ]
-    ]
